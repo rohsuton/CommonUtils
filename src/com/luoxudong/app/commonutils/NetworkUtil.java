@@ -2,8 +2,8 @@
 /**
  * Title: NetworkUtil.java
  * Description:
- * Copyright: Copyright (c) 2013 luoxudong.com
- * Company: www.luoxudong.com
+ * Copyright: Copyright (c) 2013-2015 luoxudong.com
+ * Company:  个人
  * Author 罗旭东 (hi@luoxudong.com)
  * Date 2014-7-15 下午5:39:26
  * Version 1.0
