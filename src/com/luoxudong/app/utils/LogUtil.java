@@ -7,7 +7,7 @@
  * Date 2014-7-15 下午4:26:04
  * Version 1.0
  */
-package com.luoxudong.app.commonutils;
+package com.luoxudong.app.utils;
 
 import android.util.Log;
 

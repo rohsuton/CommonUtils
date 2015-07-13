@@ -7,7 +7,7 @@
  * Date 2014-7-15 下午6:03:09
  * Version 1.0
  */
-package com.luoxudong.app.commonutils;
+package com.luoxudong.app.utils;
 
 import android.app.AlertDialog;
 import android.content.Context;

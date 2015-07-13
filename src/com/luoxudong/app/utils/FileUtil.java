@@ -7,7 +7,7 @@
  * Date 2013-8-14 上午10:08:26
  * Version 1.0 
  */
-package com.luoxudong.app.commonutils;
+package com.luoxudong.app.utils;
 
 import java.io.Closeable;
 import java.io.File;
@@ -28,7 +28,7 @@ import android.content.Context;
 import android.os.Environment;
 import android.text.TextUtils;
 
-import com.luoxudong.app.commonutils.charset.CharsetDetector;
+import com.luoxudong.app.utils.charset.CharsetDetector;
 
 /** 
  * ClassName: FileUtil 

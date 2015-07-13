@@ -8,7 +8,7 @@
  * @CreateDate 2013-5-28 下午3:52:11
  * @version 1.0
  */
-package com.luoxudong.app.commonutils;
+package com.luoxudong.app.utils;
 
 import java.text.DateFormat;
 import java.text.ParseException;

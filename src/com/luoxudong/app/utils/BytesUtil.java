@@ -7,7 +7,7 @@
  * Date 2014-8-4 下午5:28:36
  * Version 1.0
  */
-package com.luoxudong.app.commonutils;
+package com.luoxudong.app.utils;
 
 import java.io.UnsupportedEncodingException;
 

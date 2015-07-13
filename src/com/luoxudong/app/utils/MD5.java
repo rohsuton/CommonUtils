@@ -7,7 +7,7 @@
  * Date 2014-7-15 上午9:55:08
  * Version 1.0
  */
-package com.luoxudong.app.commonutils;
+package com.luoxudong.app.utils;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;

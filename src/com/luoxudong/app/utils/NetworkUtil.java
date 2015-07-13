@@ -8,7 +8,7 @@
  * Date 2014-7-15 下午5:39:26
  * Version 1.0
  */
-package com.luoxudong.app.commonutils;
+package com.luoxudong.app.utils;
 
 import java.util.List;
 
@@ -21,8 +21,6 @@ import android.net.wifi.ScanResult;
 import android.net.wifi.WifiConfiguration;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
-import android.webkit.CookieManager;
-import android.webkit.CookieSyncManager;
 
 /** 
  * ClassName: NetworkUtil
@@ -196,19 +194,5 @@ public class NetworkUtil {
 		}
 
 		return isConnection;
-	}
-
-	/**
-	 * 清除cookies
-	 * @param context 上下文
-	 * @param url url地址
-	 */
-	public static void clearCookies(Context context, String url) {
-		CookieSyncManager.createInstance(context);
-		CookieManager cookieManager = CookieManager.getInstance();
-		cookieManager.setAcceptCookie(true);
-		cookieManager.removeSessionCookie();
-		cookieManager.removeAllCookie();
-		CookieSyncManager.getInstance().sync();
 	}
 }

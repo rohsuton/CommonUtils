@@ -7,7 +7,7 @@
  * Date 2014-7-30 下午4:12:39
  * Version 1.0
  */
-package com.luoxudong.app.commonutils;
+package com.luoxudong.app.utils;
 
 import java.util.List;
 
@@ -112,9 +112,9 @@ public class PackageUtil {
 	 * @return 获得手机端终端唯一标识
 	 */
 	public static String getTerminalSign(Context context) {
-		String tvDevice = getLocalMacAddress(context);
+		String tvDevice = getDeviceId(context);
 		if (tvDevice == null) {
-			tvDevice = getDeviceId(context);
+			tvDevice = getLocalMacAddress(context);
 		}
 
 		if (tvDevice == null) {
@@ -124,7 +124,7 @@ public class PackageUtil {
 		return tvDevice;
 	}
 	
-	public static String getMacMD5(Context context) {
+	public static String getDeviceIdMD5(Context context) {
 		String md5 = MD5.hexdigest(getTerminalSign(context));
 		
 		if (md5 != null){
@@ -287,6 +287,7 @@ public class PackageUtil {
 		try {
 			String packageName = context.getPackageName();
 			ActivityManager activityManager = (ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
+			@SuppressWarnings("deprecation")
 			List<RunningTaskInfo> tasksInfo = activityManager.getRunningTasks(1);
 			if (tasksInfo.size() > 0) {
 				// 应用程序位于堆栈的顶层

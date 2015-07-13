@@ -7,7 +7,7 @@
  * Date 2014-7-15 下午5:09:07
  * Version 1.0
  */
-package com.luoxudong.app.commonutils;
+package com.luoxudong.app.utils;
 
 import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
