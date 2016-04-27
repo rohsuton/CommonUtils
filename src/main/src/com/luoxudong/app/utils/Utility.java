@@ -72,55 +72,9 @@ public class Utility {
 		return params;
 	}
 
-	/** 是否为中文环境 */
-	public static boolean isChineseLocale(Context context) {
-		try {
-			Locale locale = context.getResources().getConfiguration().locale;
-			if ((Locale.CHINA.equals(locale)) || (Locale.CHINESE.equals(locale)) || (Locale.SIMPLIFIED_CHINESE.equals(locale)) || (Locale.TAIWAN.equals(locale))){
-				return true;
-			}
-		} catch (Exception e) {
-			return true;
-		}
-		return false;
-	}
-
 	/** 获取随机UUID */
 	public static String generateGUID() {
 		return UUID.randomUUID().toString().replace("-", "");
-	}
-
-	/**
-	 * 获取APK包签名
-	 * @param context
-	 * @param pkgName
-	 * @return
-	 * @return String
-	 */
-	public static String getSign(Context context, String pkgName) {
-		PackageInfo packageInfo;
-		try {
-			packageInfo = context.getPackageManager().getPackageInfo(pkgName, PackageManager.GET_RESOLVED_FILTER);
-		} catch (NameNotFoundException e) {
-			return null;
-		}
-		
-		if (packageInfo.signatures == null){
-			return null;
-		}
-		
-		for (int nIndex = 0; nIndex < packageInfo.signatures.length; nIndex++) {
-			byte[] buffer = packageInfo.signatures[nIndex].toByteArray();
-			if (buffer != null) {
-				try {
-					return MD5.hexdigest(buffer);
-				} catch (NoSuchAlgorithmException e) {
-					return null;
-				}
-			}
-		}
-		
-		return null;
 	}
 
 	/**

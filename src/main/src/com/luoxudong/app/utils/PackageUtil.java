@@ -9,7 +9,9 @@
  */
 package com.luoxudong.app.utils;
 
+import java.security.NoSuchAlgorithmException;
 import java.util.List;
+import java.util.Locale;
 
 import android.app.ActivityManager;
 import android.app.ActivityManager.RunningAppProcessInfo;
@@ -20,8 +22,8 @@ import android.content.Intent;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
-import android.content.pm.ResolveInfo;
 import android.content.pm.PackageManager.NameNotFoundException;
+import android.content.pm.ResolveInfo;
 import android.content.res.Resources;
 import android.location.Criteria;
 import android.location.Location;
@@ -32,6 +34,7 @@ import android.net.wifi.WifiManager;
 import android.os.Build;
 import android.provider.CallLog;
 import android.telephony.TelephonyManager;
+import android.text.TextUtils;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.WindowManager;
@@ -44,7 +47,6 @@ import android.view.WindowManager;
  */
 public class PackageUtil {
 	private static final String TAG = PackageUtil.class.getSimpleName();
-	private static final String DEVICE_ID = "Unknow";
 	private static final int HONEYCOMB = 11;
 	
 	/**
@@ -106,49 +108,73 @@ public class PackageUtil {
 		Resources res = context.getResources();
 		return res.getString(resourceId);
 	}
-
-	/**
-	 * 
-	 * @return 获得手机端终端唯一标识
-	 */
-	public static String getTerminalSign(Context context) {
-		String tvDevice = getDeviceId(context);
-		if (tvDevice == null) {
-			tvDevice = getLocalMacAddress(context);
-		}
-
-		if (tvDevice == null) {
-			tvDevice = DEVICE_ID;
-		}
-
-		return tvDevice;
-	}
 	
-	public static String getDeviceIdMD5(Context context) {
-		String md5 = MD5.hexdigest(getTerminalSign(context));
+	public static String getDeviceId(Context context) {
+		String imei = getImei(context);
+		String deviceId = getSerialId(context);
 		
-		if (md5 != null){
-			md5 = md5.toUpperCase();
+		if (!TextUtils.isEmpty(imei)){
+			deviceId = imei + deviceId;
 		}
 		
-		return md5;
+		if (TextUtils.isEmpty(deviceId)) {
+			deviceId = getLocalMacAddress(context);
+		}
+		
+		return MD5.hexdigest(deviceId).toUpperCase();
 	}
 
 	/**
-	 * 获取设备ID
+	 * 获取IMEI，MEID,ESN码或者IMSI
 	 * @param context
 	 * @return
 	 */
-	public static String getDeviceId(Context context){
+	public static String getImei(Context context){
 		TelephonyManager tm = (TelephonyManager) context.getSystemService(Context.TELEPHONY_SERVICE);
 		String deviceId = null;
 		try {
 			deviceId = tm.getDeviceId();
+			
+			if (TextUtils.isEmpty(deviceId) || TextUtils.isEmpty(deviceId.replace("0", ""))){
+				deviceId = tm.getSubscriberId();
+			}
 		} catch (Exception e) {
 			LogUtil.e(TAG, e.toString());
 		}
 		
 		return deviceId;
+	}
+	
+	/**
+	 * 根据Rom版本，制造商，CPU型号等生成ID
+	 * @param context
+	 * @return
+	 */
+	public static String getSerialId(Context context){
+		String id = null;
+		
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.GINGERBREAD){
+			id = Build.SERIAL;
+		}
+		
+		if (TextUtils.isEmpty(id)) {
+			id = "build";
+			id += Build.BRAND;//手机品牌
+			id += Build.DEVICE;//采用的设备
+			id += Build.HOST;
+			id += Build.MANUFACTURER;//手机制造商
+			id += Build.PRODUCT;
+			id += Build.TYPE;
+			id += Build.BOARD;//采用的主板
+			id += Build.CPU_ABI;
+			id += Build.DISPLAY;
+			id += Build.ID;
+			id += Build.MODEL;//手机型号
+			id += Build.TAGS;
+			id += Build.USER;
+		}
+		
+		return MD5.hexdigest(id);
 	}
 	
 	/**
@@ -235,8 +261,11 @@ public class PackageUtil {
 	 * 获取屏幕尺寸
 	 * @return
 	 */
-	public static int[] getScreenSize(Context context)
-	{
+	public static int[] getScreenSize(Context context){
+		if (context == null){
+			return new int[]{0, 0};
+		}
+		
 		WindowManager wm = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
 		DisplayMetrics dm = new DisplayMetrics();
 		wm.getDefaultDisplay().getMetrics(dm);
@@ -397,6 +426,7 @@ public class PackageUtil {
     public static void installApk(Context context, String filePath){
 		Intent intent = new Intent(Intent.ACTION_VIEW);
 		intent.setDataAndType(Uri.parse("file://" + filePath), "application/vnd.android.package-archive");
+		intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 		context.startActivity(intent);
     }
     
@@ -436,5 +466,51 @@ public class PackageUtil {
 		}
 		
 		return false;
+	}
+    
+    /** 是否为中文环境 */
+	public static boolean isChineseLocale(Context context) {
+		try {
+			Locale locale = context.getResources().getConfiguration().locale;
+			if ((Locale.CHINA.equals(locale)) || (Locale.CHINESE.equals(locale)) || (Locale.SIMPLIFIED_CHINESE.equals(locale)) || (Locale.TAIWAN.equals(locale))){
+				return true;
+			}
+		} catch (Exception e) {
+			return true;
+		}
+		return false;
+	}
+	
+	/**
+	 * 获取APK包签名
+	 * @param context
+	 * @param pkgName
+	 * @return
+	 * @return String
+	 */
+	public static String getSign(Context context, String pkgName) {
+		PackageInfo packageInfo;
+		try {
+			packageInfo = context.getPackageManager().getPackageInfo(pkgName, PackageManager.GET_RESOLVED_FILTER);
+		} catch (NameNotFoundException e) {
+			return null;
+		}
+		
+		if (packageInfo.signatures == null){
+			return null;
+		}
+		
+		for (int nIndex = 0; nIndex < packageInfo.signatures.length; nIndex++) {
+			byte[] buffer = packageInfo.signatures[nIndex].toByteArray();
+			if (buffer != null) {
+				try {
+					return MD5.hexdigest(buffer);
+				} catch (NoSuchAlgorithmException e) {
+					return null;
+				}
+			}
+		}
+		
+		return null;
 	}
 }

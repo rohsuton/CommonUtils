@@ -61,21 +61,21 @@ public class DateUtil {
 	 */
 	public static final SimpleDateFormat sdf1 = new SimpleDateFormat(DATE_FORMAT_1, Locale.getDefault());
 	
-	public static ThreadLocal<DateFormat> threadLocal = new ThreadLocal<DateFormat>() {
+	private static ThreadLocal<DateFormat> threadLocal = new ThreadLocal<DateFormat>() {
         @Override
         protected DateFormat initialValue() {
             return new SimpleDateFormat(DATE_FORMAT_DEFAULT);
         }
     };
     
-    public static ThreadLocal<DateFormat> threadLocal1 = new ThreadLocal<DateFormat>() {
+    private static ThreadLocal<DateFormat> threadLocal1 = new ThreadLocal<DateFormat>() {
         @Override
         protected DateFormat initialValue() {
             return new SimpleDateFormat(DATE_FORMAT_1);
         }
     };
     
-    public static ThreadLocal<DateFormat> threadLocal3 = new ThreadLocal<DateFormat>() {
+    private static ThreadLocal<DateFormat> threadLocal3 = new ThreadLocal<DateFormat>() {
         @Override
         protected DateFormat initialValue() {
             return new SimpleDateFormat(DATE_FORMAT_3);
@@ -176,7 +176,6 @@ public class DateUtil {
 		}
 		catch (ParseException e)
 		{
-			e.printStackTrace();
 		}
 		return date;
 	}
@@ -192,7 +191,7 @@ public class DateUtil {
 		}
 		catch (ParseException e)
 		{
-			e.printStackTrace();
+			
 		}
 		return date;
 	}
