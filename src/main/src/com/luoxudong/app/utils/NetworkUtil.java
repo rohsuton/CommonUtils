@@ -75,7 +75,7 @@ public class NetworkUtil {
 	 * @param context 上下文
 	 * @return boolean true:使用手机网络,false:不是手机网络
 	 */
-	public static boolean isMobileNetwork(Context context) {
+	public static boolean isMobileNetworkValid(Context context) {
 		if (context != null) {
 			NetworkInfo info = getActiveNetworkInfo(context);
 

@@ -22,7 +22,7 @@ public class ClickEffectUtil {
 	/**
 	 * 默认点击响应间隔时间
 	 */
-	private final long LOCK_TIME = 500;
+	private final long LOCK_TIME = 1000;
 	
 	/**
 	 * 上次响应点击事件的时间

@@ -408,7 +408,7 @@ public class FileUtil {
 		try {
 			if (isSDCardAvailable()) {
 				createSDDir(path);
-				file = createSDFile(path + fileName);
+				file = createSDFile(new File(path, fileName).getAbsolutePath());
 				output = new FileOutputStream(file);
 
 				byte[] buffer = new byte[BUFSIZE];
