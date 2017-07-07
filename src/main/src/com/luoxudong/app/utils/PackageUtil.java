@@ -239,6 +239,18 @@ public class PackageUtil {
 		}
 		return val;
 	}
+	
+	public static long getConfigLong(Context context, String key) {
+		long val = 0;
+		try {
+			ApplicationInfo appInfo = context.getPackageManager().getApplicationInfo(
+					context.getPackageName(), PackageManager.GET_META_DATA);
+			val = appInfo.metaData.getLong(key);
+		} catch (NameNotFoundException e) {
+			Log.e(TAG, e.toString());
+		}
+		return val;
+	}
 
 	/**
 	 * 读取manifest.xml中application标签下的配置项

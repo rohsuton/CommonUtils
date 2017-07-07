@@ -19,7 +19,6 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 import java.nio.channels.FileChannel;
-import java.nio.charset.Charset;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
@@ -39,29 +38,19 @@ import com.luoxudong.app.utils.charset.CharsetDetector;
 public class FileUtil {
 	public static final int BUFSIZE = 256;
 	
-	/**
-	 * 1KB大小
-	 */
+	/** 1KB大小 */
 	public static final long ONE_KB = 1024;
 
-	/**
-	 * 1MB大小
-	 */
+	/** 1MB大小 */
 	public static final long ONE_MB = ONE_KB * ONE_KB;
 
-	/**
-	 * 1GB大小
-	 */
+	/** 1GB大小 */
 	public static final long ONE_GB = ONE_KB * ONE_MB;
 
-	/**
-	 * 1TB大小
-	 */
+	/** 1TB大小 */
 	public static final long ONE_TB = ONE_KB * ONE_GB;
 	
-	/**
-	 * 拷贝文件时buffer大小
-	 */
+	/** 拷贝文件时buffer大小 */
 	private static final long FILE_COPY_BUFFER_SIZE = ONE_MB * 30;
 
 	/**
@@ -71,197 +60,220 @@ public class FileUtil {
 	 * @throws
 	 */
 	public static boolean isSDCardAvailable() {
-		return android.os.Environment.getExternalStorageState().equals(
-				android.os.Environment.MEDIA_MOUNTED);
+		return android.os.Environment.getExternalStorageState().equals(android.os.Environment.MEDIA_MOUNTED);
 	}
 	
 	/**
-	 * 在SD卡上面创建文件
-	 * 
+	 * 创建文件
 	 * @param filePath
-	 *            文件路径
-	 * @return 文件
-	 * @throws IOException
-	 *             异常
+	 * @return
 	 */
-	public static File createSDFile(String filePath) throws IOException {
-		File file = null;
+	public static File createFile(String filePath) {
+		if (TextUtils.isEmpty(filePath)) {
+			return null;
+		}
 		
-		if (isSDCardAvailable())
-		{
-			file = new File(filePath);
-			file.createNewFile();
+		File file = new File(filePath);
+		
+		if (!file.getParentFile().exists()) {
+			createDir(file.getParentFile().getAbsolutePath());
+		}
+		
+		try {
+			if (!file.exists() && !file.createNewFile()) {
+				return null;
+			}
+		} catch (IOException e) {
+			return null;
 		}
 		
 		return file;
 	}
+	
+	/**
+	 * 在SD卡上面创建文件
+	 * @param filePath
+	 * @return
+	 */
+	public static File createSDFile(String filePath) {
+		if (!isSDCardAvailable()) {
+			return null;
+		}
+		
+		return createFile(filePath);
+	}
+	
+	/**
+	 * 创建目录
+	 * @param dirName
+	 * @return
+	 */
+	public static File createDir(String filePath) {
+		return createDir(filePath, null);
+	}
 
 	/**
 	 * 在SD卡上面创建目录
-	 * 
 	 * @param dirName
-	 *            目录名称
-	 * @return 文件
+	 * @return
 	 */
-	public static File createSDDir(String dirName) {
-		File dir = null;
-		if (isSDCardAvailable())
-		{
-			dir = new File(dirName);
-			dir.mkdir();
+	public static File createSDDir(String filePath) {
+		if (!isSDCardAvailable()) {
+			return null;
 		}
-			
-		return dir;
+		
+		return createDir(filePath);
+	}
+	
+	public static File createDir(String filePath, String dirName) {
+		if (TextUtils.isEmpty(filePath)) {
+			return null;
+		}
+		
+		File file = null;
+		
+		if (TextUtils.isEmpty(dirName)) {
+			file = new File(filePath);
+		} else {
+			file = new File(filePath, dirName);
+		}
+		
+		if (!file.exists() && !file.mkdirs()) {
+			return null;
+		}
+		
+		return file;
+	}
+	
+	public static File createSDDir(String filePath, String dirName) {
+		if (!isSDCardAvailable()) {
+			return null;
+		}
+		
+		return createDir(filePath, dirName);
 	}
 
 	/**
 	 * 判断指定的文件是否存在
-	 * 
 	 * @param filePath
-	 *            文件路径
-	 * @return 是否存在
+	 * @return
 	 */
 	public static boolean isFileExist(String filePath) {
-		if (isSDCardAvailable())
-		{
-			File file = new File(filePath);
-			return file.exists();
+		if (TextUtils.isEmpty(filePath)) {
+			return false;
 		}
 		
-		return false;
-	}
-
-	/**
-	 * 准备文件夹，文件夹若不存在，则创建
-	 * 
-	 * @param filePath
-	 *            文件路径
-	 */
-	public static void prepareFile(String filePath) {
-		if (isSDCardAvailable())
-		{
-			File file = new File(filePath);
-			if (!file.exists()) {
-				file.mkdirs();
-			}
-		}
-		
+		return new File(filePath).exists();
 	}
 
 	/**
 	 * 删除指定的文件或目录
-	 * 
 	 * @param filePath
-	 *            文件路径
 	 */
 	public static void delete(String filePath) {
-		if (filePath == null) {
+		if (TextUtils.isEmpty(filePath)) {
 			return;
 		}
 		
-		if (isSDCardAvailable())
-		{
-			try {
-				File file = new File(filePath);
-				delete(file);
-			} catch (Exception e) {
-			}
+		try {
+			File file = new File(filePath);
+			delete(file);
+		} catch (Exception e) {
 		}
-		
 	}
 
 	/**
 	 * 删除指定的文件或目录
-	 * 
 	 * @param file
-	 *            文件
 	 */
 	public static void delete(File file) {
 		if (file == null || !file.exists()) {
 			return;
 		}
 		
-		if (isSDCardAvailable())
-		{
-			if (file.isDirectory()) {
-				deleteDirRecursive(file);
-			} else {
-				file.delete();
-			}
+		if (file.isDirectory()) {
+			deleteDirRecursive(file);
+		} else {
+			file.delete();
 		}
-		
 	}
-
+	
 	/**
-	 * 递归删除目录
-	 * 
+	 * 清除目录中的文件及子目录
 	 * @param dir
-	 *            文件路径
 	 */
-	public static void deleteDirRecursive(File dir) {
-		
+	public static void cleanDir(File dir) {
 		if (dir == null || !dir.exists() || !dir.isDirectory()) {
 			return;
 		}
 		
-		if (isSDCardAvailable())
-		{
-			File[] files = dir.listFiles();
-			if (files == null) {
-				return;
-			}
-			for (File f : files) {
-				if (f.isFile()) {
-					f.delete();
-				} else {
-					deleteDirRecursive(f);
-				}
-			}
-			dir.delete();
+		File[] files = dir.listFiles();
+		if (files == null) {
+			return;
 		}
 		
+		for (File file : files) {
+			delete(file);
+		}
+	}
+
+	/**
+	 * 删除指定的目录，该目录也删除
+	 * @param file
+	 */
+	public static void deleteDirRecursive(File dir) {
+		if (dir == null || !dir.exists() || !dir.isDirectory()) {
+			return;
+		}
+		
+		File[] files = dir.listFiles();
+		if (files == null) {
+			return;
+		}
+		
+		for (File file : files) {
+			if (file.isFile()) {
+				file.delete();
+			} else {
+				deleteDirRecursive(file);
+			}
+		}
+		
+		dir.delete();
 	}
 
 	/**
 	 * 取得文件大小
-	 * 
 	 * @param f
-	 *            文件
-	 * @return long 大小
-	 * 
+	 * @return
 	 */
-	public static long getFileSizes(File f) {
-		long s = 0;
+	public static long getFileSizes(File file) {
+		long size = 0;
 		FileInputStream fis = null;
 		
 		try {
-			if (f.exists()) {
-				fis = new FileInputStream(f);
-				s = fis.available();
+			if (file.exists()) {
+				fis = new FileInputStream(file);
+				size = fis.available();
 			} else {
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
-		}
-		finally
-		{
-			if (fis != null)
-			{
+		} finally {
+			if (fis != null) {
 				try {
 					fis.close();
 				} catch (IOException e) {
 				}
 			}
 		}
-		return s;
+		return size;
 	}
 
 	/**
-	 * 递归取得文件夹大小
-	 * 
+	 * 获取文件夹大小
 	 * @param filedir
-	 *            文件
-	 * @return 大小
+	 * @return
 	 */
 	public static long getFileSize(File filedir) {
 		long size = 0;
@@ -269,24 +281,18 @@ public class FileUtil {
 			return size;
 		}
 		
-		if (!isSDCardAvailable())
-		{
-			return 0;
-		}
-		
 		File[] files = filedir.listFiles();
 
-		if (files == null)
-		{
+		if (files == null) {
 			return 0;
 		}
 		
 		try {
-			for (File f : files) {
-				if (f.isDirectory()) {
-					size += getFileSize(f);
+			for (File file : files) {
+				if (file.isDirectory()) {
+					size += getFileSize(file);
 				} else {
-					FileInputStream fis = new FileInputStream(f);
+					FileInputStream fis = new FileInputStream(file);
 					size += fis.available();
 					fis.close();
 				}
@@ -299,44 +305,29 @@ public class FileUtil {
 	}
 	
 	/**
-	 * 递归获取文件路径
+	 * 获取目录中所有的文件路径
 	 * @return
 	 */
-	public static List<String> getFilePaths(File fileDir)
-	{
-		if (null == fileDir) 
-		{
-			return null;
-		}
+	public static List<String> getFilePaths(File fileDir) {
+		List<String> filePaths = new ArrayList<String>();
 		
-		if (!isSDCardAvailable())
-		{
-			return null;
+		if (null == fileDir) {
+			return filePaths;
 		}
 		
 		File[] files = fileDir.listFiles();
 		
-		if (files == null || files.length == 0)
-		{
-			return null;
+		if (files == null || files.length == 0) {
+			return filePaths;
 		}
 		
-		List<String> filePaths = new ArrayList<String>();
-		
-		
-		
-		for (File f : files)
-		{
-			if (f.isDirectory())
-			{
+		for (File f : files) {
+			if (f.isDirectory()) {
 				List<String> list = getFilePaths(f);
-				if (list != null)
-				{
+				if (list != null) {
 					filePaths.addAll(list);
 				}
-				
-			}
-			else {
+			} else {
 				filePaths.add(f.getAbsolutePath());
 			}
 		}
@@ -345,11 +336,9 @@ public class FileUtil {
 	}
 
 	/**
-	 * 转换文件大小
-	 * 
+	 * 文件大小格式化
 	 * @param fileS
-	 *            大小
-	 * @return 转换后的文件大小
+	 * @return
 	 */
 	public static String formatFileSize(long fileS) {
 		DecimalFormat df = new DecimalFormat("#.0");
@@ -368,67 +357,70 @@ public class FileUtil {
 		return fileSizeString;
 	}
 
+	public static File saveFile(String filePath, String fileName, String content) {
+		createDir(filePath);
+		File file = new File(filePath, fileName);
+		FileOutputStream outStream = null;
+		try {
+			outStream = new FileOutputStream(file);
+			outStream.write(content.getBytes());
+		} catch (IOException e) {
+			e.printStackTrace();
+			return null;
+		} finally {
+			if (outStream != null) {
+				try {
+					outStream.close();
+				} catch (IOException e) {
+					return null;
+				}
+			}
+		}
+		
+		return file;
+	}
+	
 	/**
 	 * 
 	 * @description:字符串写入指定文件
 	 * @param filePath 文件路径
 	 * @param filename 文件名称
 	 * @param content 文件内容
-	 * @return 写入成功返回true，失败返回false
+	 * @return 
 	 * @throws Exception
 	 * @throws
 	 */
-	public static boolean saveFileToSDCard(String filePath, String filename, String content)
-			throws Exception {
-		boolean flag = false;
-		if (isSDCardAvailable()) {
-			File file = new File(filePath, filename);
-			FileOutputStream outStream = new FileOutputStream(file);
-			outStream.write(content.getBytes());
-			outStream.close();
-			flag = true;
+	public static File saveFileToSDCard(String filePath, String fileName, String content) throws Exception {
+		if (!isSDCardAvailable()) {
+			return null;
 		}
-		return flag;
+
+		return saveFile(filePath, fileName, content);
 	}
 
-	/**
-	 * 将文件写入SD卡
-	 * 
-	 * @param path
-	 *            路径
-	 * @param fileName
-	 *            文件名称
-	 * @param input
-	 *            输入流
-	 * @return 文件
-	 */
-	public static File saveFileToSDCard(String path, String fileName, InputStream input) {
+	public static File saveFile(String filePath, String fileName, InputStream input) {
 		File file = null;
 		OutputStream output = null;
 		try {
-			if (isSDCardAvailable()) {
-				createSDDir(path);
-				file = createSDFile(new File(path, fileName).getAbsolutePath());
-				output = new FileOutputStream(file);
+			file = createFile(new File(filePath, fileName).getAbsolutePath());
+			output = new FileOutputStream(file);
 
-				byte[] buffer = new byte[BUFSIZE];
-				int readedLength = -1;
-				while ((readedLength = input.read(buffer)) != -1) {
-					output.write(buffer, 0, readedLength);
-				}
-				output.flush();
+			byte[] buffer = new byte[BUFSIZE];
+			int readedLength = -1;
+			while ((readedLength = input.read(buffer)) != -1) {
+				output.write(buffer, 0, readedLength);
 			}
+			output.flush();
 		} catch (Exception e) {
-			e.printStackTrace();
+			return null;
 		} finally {
 			try {
 				if (output != null)
 				{
 					output.close();
 				}
-				
 			} catch (IOException e) {
-				e.printStackTrace();
+				return null;
 			}
 		}
 
@@ -436,147 +428,184 @@ public class FileUtil {
 	}
 	
 	/**
-	 * 
-	 * @description: 读文件
-	 * @param filePath 文件路径
-	 * @param fileName 文件名
-	 * @return 文件内容
-	 * @throws
+	 * 已数据流的方式将文件写入SD卡
+	 * @param filePath
+	 * @param fileName
+	 * @param input
+	 * @return
 	 */
-	public static byte[] readFileFromSDCardForBytes(String filePath, String fileName) {
+	public static File saveFileToSDCard(String filePath, String fileName, InputStream input) {
+		if (!isSDCardAvailable()) {
+			return null;
+		}
+		
+		return saveFile(filePath, fileName, input);
+	}
+	
+	/**
+	 * 读文件
+	 * @param filePath
+	 * @param fileName
+	 * @return
+	 */
+	public static byte[] readFileForBytes(String filePath, String fileName) {
 		byte[] buffer = null;
 		try {
-			if (isSDCardAvailable()) {
-				if(!filePath.endsWith("/")){
-					filePath += File.separatorChar;
-				}
-				String filePaht = filePath + fileName;
-				
-				File file = new File(filePaht);
-				
-				if (!file.exists())
-				{
-					file.createNewFile();
-				}
-				FileInputStream fin = new FileInputStream(file);
-				int length = fin.available();
-				buffer = new byte[length];
-				fin.read(buffer);
-				fin.close();
+			File file = new File(filePath, fileName);
+			
+			if (!file.exists()) {
+				return null;
 			}
+			
+			FileInputStream fin = new FileInputStream(file);
+			int length = fin.available();
+			buffer = new byte[length];
+			fin.read(buffer);
+			fin.close();
 		} catch (Exception e) {
-			e.printStackTrace();
+			return null;
 		}
 		
 		return buffer;
 	}
 	
 	/**
-	 * 
-	 * @description: 读文件
-	 * @param filePath 文件路径
-	 * @param fileName 文件名
-	 * @return 文件内容 String类型
-	 * @throws
+	 * 读文件
+	 * @param filePath
+	 * @param fileName
+	 * @return
 	 */
-	public static String readFileFromSDCard(String filePath, String fileName) {
+	public static byte[] readFileFromSDCardForBytes(String filePath, String fileName) {
+		if (!isSDCardAvailable()) {
+			return null;
+		}
+		
+		return readFileForBytes(filePath, fileName);
+	}
+	
+	public static String readFile(String filePath, String fileName, String charset) {
 		String content = null;
 		
-		if (isSDCardAvailable()) {
-			byte[] buffer = readFileFromSDCardForBytes(filePath, fileName);
-			String charset = Charset.defaultCharset().displayName();
-			
+		byte[] buffer = readFileForBytes(filePath, fileName);
+		
+		try {
 			if (buffer != null) {
-				charset = CharsetDetector.detectEncoding(buffer);
-			}
-			try {
+				if (TextUtils.isEmpty(charset)) {
+					charset = CharsetDetector.detectEncoding(buffer);
+				}
+				
 				content = new String(buffer, charset);
-			} catch (UnsupportedEncodingException e) {
 			}
+		} catch (UnsupportedEncodingException e) {
 		}
+		
 		return content;
 	}
 	
-	public static String readFileFromSDCard(String filePath, String fileName, String charset)
-	{
-		if (filePath == null || "".equals(filePath))
-		{
+	public static String readFileFromSDCard(String filePath, String fileName, String charset) {
+		if (!isSDCardAvailable()) {
 			return null;
 		}
 		
-		File file = new File(filePath, fileName);
-		
-		if (file == null || !file.exists())
-		{
+		return readFile(filePath, fileName, charset);
+	}
+	
+	/**
+	 * 读文本文件
+	 * @param filePath
+	 * @param fileName
+	 * @return
+	 */
+	public static String readFileFromSDCard(String filePath, String fileName) {
+		if (!isSDCardAvailable()) {
 			return null;
 		}
 		
-		String ret = null;
-		InputStream in = null;
-		byte[] content = null;
-		
-		try {
-			in = new FileInputStream(file);
-			content = new byte[(int)file.length()];
-			int by = 0;
-			int count = 0;
-			while ((by = in.read()) != -1) {
-				content[count++] = (byte)by;
-			}
-			ret = new String(content, charset);
-		} catch (FileNotFoundException e1) {
-			e1.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}finally
-		{
-			if (in != null)
-			{
-				try {
-					in.close();
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
-			}
-		}
-		
-		return ret;
+		return readFile(filePath, fileName, null);
+	}
+	
+	public static String readFile(String filePath, String fileName) {
+		return readFile(filePath, fileName, null);
 	}
 	
 	/**
-	 * 获取内存中的目录
-	 * 
-	 * @param context The context to use
-	 * @return The external cache path
-	 */
-	public static String getExternalCachePath(Context context) {
-		final String cachePath = "/data/" + context.getPackageName();
-		return Environment.getExternalStorageDirectory().getPath() + cachePath;
-	}
-	
-	/**
-	 * Get a usable cache directory (external if available, internal otherwise).
-	 * 
-	 * @param context The context to use
-	 * @param uniqueName A unique directory name to append to the cache dir
-	 * @return The cache path
-	 */
-	public static String getDiskCachePath(Context context, String uniqueName) {
-		final String cachePath = isSDCardAvailable() ? getExternalCachePath(context)
-				: context.getCacheDir().getPath();
-		return cachePath + File.separator + uniqueName;
-	}
+     * 获取内部存储缓存目录，删除app时清除
+     * @param context
+     * @return
+     */
+	public static File getIntCacheDir(Context context) {
+        return context.getCacheDir();
+    }
+
+    /**
+     * 获取内部存储文件目录，删除app时清除
+     * @param context
+     * @return
+     */
+    public static File getIntFileDir(Context context) {
+        return context.getFilesDir();
+    }
+
+    /**
+     * 获取外部存储缓存目录，删除app时清除
+     * @param context
+     * @return
+     */
+    public static File getExtCacheDir(Context context) {
+        if(!isSDCardAvailable()){//未挂载，则返回默认路径
+            return null;
+        }
+
+        File file = context.getExternalCacheDir();
+
+        if (file == null) {
+            return null;
+        }
+
+        return file;
+    }
+
+    /**
+     * 获取外部存储文件目录，删除app时清除
+     * @param context
+     * @return
+     */
+    public static File getExtFileDir(Context context) {
+        if(!isSDCardAvailable()){//未挂载，则返回默认路径
+            return null;
+        }
+
+        File file = context.getExternalFilesDir(null);
+
+        if (file == null) {
+            return null;
+        }
+
+        return file;
+    }
+
+    /**
+     * 获取外部存储项目根，删除app时不清除
+     * @param context
+     * @return
+     */
+    public static File getExtRootDir() {
+        if(!isSDCardAvailable()){//未挂载，则使用内部存储
+            return null;
+        } else {
+            return Environment.getExternalStorageDirectory();
+
+        }
+    }
 	
 	/**
 	 * 根据文件路径获取文件名
 	 * @param filePath 文件路径
 	 * @return 文件名
 	 */
-	public static String getFileNameByFilePath(String filePath)
-	{
-		if (filePath == null || "".equals(filePath))
-		{
-			return "";
+	public static String getFileNameByFilePath(String filePath) {
+		if (TextUtils.isEmpty(filePath)) {
+			return null;
 		}
 		
 		File file = new File(filePath);
@@ -593,8 +622,7 @@ public class FileUtil {
 	 * @return void
 	 * @throws
 	 */
-	public static void copyFile(File srcFile, File destFile) throws IOException
-	{
+	public static void copyFile(File srcFile, File destFile) throws IOException {
 		copyFile(srcFile, destFile, true);
 	}
 	
@@ -608,40 +636,38 @@ public class FileUtil {
 	 * @return void
 	 * @throws
 	 */
-	public static void copyFile(File srcFile, File destFile, boolean preserveFileDate) throws IOException
-	{
-		if (srcFile == null)
-		{
+	public static void copyFile(File srcFile, File destFile, boolean preserveFileDate) throws IOException {
+		if (srcFile == null) {
 			throw new NullPointerException("Source must not be null");
 		}
-		if (destFile == null)
-		{
+		
+		if (destFile == null) {
 			throw new NullPointerException("Destination must not be null");
 		}
-		if (srcFile.exists() == false)
-		{
+		
+		if (srcFile.exists() == false) {
 			throw new FileNotFoundException("Source '" + srcFile + "' does not exist");
 		}
-		if (srcFile.isDirectory())
-		{
+		
+		if (srcFile.isDirectory()) {
 			throw new IOException("Source '" + srcFile + "' exists but is a directory");
 		}
-		if (srcFile.getCanonicalPath().equals(destFile.getCanonicalPath()))
-		{
+		
+		if (srcFile.getCanonicalPath().equals(destFile.getCanonicalPath())) {
 			throw new IOException("Source '" + srcFile + "' and destination '" + destFile + "' are the same");
 		}
+		
 		File parentFile = destFile.getParentFile();
-		if (parentFile != null)
-		{
-			if (!parentFile.mkdirs() && !parentFile.isDirectory())
-			{
+		if (parentFile != null) {
+			if (!parentFile.mkdirs() && !parentFile.isDirectory()) {
 				throw new IOException("Destination '" + parentFile + "' directory cannot be created");
 			}
 		}
-		if (destFile.exists() && destFile.canWrite() == false)
-		{
+		
+		if (destFile.exists() && destFile.canWrite() == false) {
 			throw new IOException("Destination '" + destFile + "' exists but is read-only");
 		}
+		
 		doCopyFile(srcFile, destFile, preserveFileDate);
 	}
 	
@@ -655,10 +681,8 @@ public class FileUtil {
 	 * @return void
 	 * @throws
 	 */
-	private static void doCopyFile(File srcFile, File destFile, boolean preserveFileDate) throws IOException
-	{
-		if (destFile.exists() && destFile.isDirectory())
-		{
+	private static void doCopyFile(File srcFile, File destFile, boolean preserveFileDate) throws IOException {
+		if (destFile.exists() && destFile.isDirectory()) {
 			throw new IOException("Destination '" + destFile + "' exists but is a directory");
 		}
 
@@ -666,8 +690,7 @@ public class FileUtil {
 		FileOutputStream fos = null;
 		FileChannel input = null;
 		FileChannel output = null;
-		try
-		{
+		try {
 			fis = new FileInputStream(srcFile);
 			fos = new FileOutputStream(destFile);
 			input = fis.getChannel();
@@ -675,46 +698,37 @@ public class FileUtil {
 			long size = input.size();
 			long pos = 0;
 			long count = 0;
-			while (pos < size)
-			{
+			while (pos < size) {
 				count = size - pos > FILE_COPY_BUFFER_SIZE ? FILE_COPY_BUFFER_SIZE : size - pos;
 				pos += output.transferFrom(input, pos, count);
 			}
-		}
-		finally
-		{
+		} finally {
 			closeQuietly(output);
 			closeQuietly(fos);
 			closeQuietly(input);
 			closeQuietly(fis);
 		}
 
-		if (srcFile.length() != destFile.length())
-		{
+		if (srcFile.length() != destFile.length()) {
 			throw new IOException("Failed to copy full contents from '" + srcFile + "' to '" + destFile + "'");
 		}
-		if (preserveFileDate)
-		{
+		
+		if (preserveFileDate) {
 			destFile.setLastModified(srcFile.lastModified());
 		}
 	}
 	
-	public static void closeQuietly(OutputStream output)
-	{
+	public static void closeQuietly(OutputStream output) {
 		closeQuietly((Closeable) output);
 	}
 	
-	public static void closeQuietly(Closeable closeable)
-	{
-		try
-		{
-			if (closeable != null)
-			{
+	public static void closeQuietly(Closeable closeable) {
+		try {
+			if (closeable != null) {
 				closeable.close();
 			}
 		}
-		catch (IOException ioe)
-		{
+		catch (IOException ioe) {
 			// ignore
 		}
 	}
@@ -724,17 +738,14 @@ public class FileUtil {
 	 * @param filePath
 	 * @return
 	 */
-	public static String getFileSuffix(String filePath)
-	{
-		if (TextUtils.isEmpty(filePath))
-		{
+	public static String getFileSuffix(String filePath) {
+		if (TextUtils.isEmpty(filePath)) {
 			return null;
 		}
 		
 		int pos = filePath.lastIndexOf(".");
 		
-		if (pos <= 0 || pos >= filePath.length() - 1)
-		{
+		if (pos <= 0 || pos >= filePath.length() - 1) {
 			return null;
 		}
 		
